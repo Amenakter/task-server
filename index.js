@@ -17,53 +17,43 @@ async function run() {
         await client.connect()
         const taskManager = client.db('taskmanager').collection('tasks');
 
-        // get all datag
-        app.get('/data', async (req, res) => {
-            const query = {};
-            const cursor = assignment12Collection.find(query)
+        //insert dataa 
+        app.post('/task', async (req, res) => {
+            const task = req.body;
+            const result = await taskManager.insertOne(task);
+            res.send(result);
+        });
+
+        // get all data To-Do
+        app.get('/task', async (req, res) => {
+            const query = { 'status': false };
+            const cursor = taskManager.find(query)
             const allData = await cursor.toArray();
             res.send(allData);
         });
 
-        //insert dataa 
-        app.post('/data', async (req, res) => {
-            const product = req.body;
-            const result = await assignment12Collection.insertOne(product)
-            res.send(result);
-        });
-
-        // get One data
-        app.get('/data/:id', async (req, res) => {
-            const id = req.params.id
-            const query = { _id: ObjectId(id) };
-            const oneData = await assignment12Collection.findOne(query);
-            res.send(oneData);
+        // get all data Complete task
+        app.get('/task-complete', async (req, res) => {
+            const query = { 'status': true };
+            const cursor = taskManager.find(query)
+            const allData = await cursor.toArray();
+            res.send(allData);
         });
 
 
-
-        //update or insert user orders
-        app.put('/orders/:email', async (req, res) => {
-            const user = req.body;
-            const id = user.id;
-            const filter = { id: id };
+        //update Task
+        app.put('/task', async (req, res) => {
+            const userTask = req.body;
+            const id = userTask.id;
+            const filter = { _id: ObjectId(id) };
             const options = { upsert: true };
             const updatedoc = {
-                $set: user,
+                $set: userTask,
             };
-            const result = await userOrders.updateOne(filter, updatedoc, options);
+            const result = await taskManager.updateOne(filter, updatedoc, options);
             res.send({ result });
         });
 
-
-
-        // delete order item
-        app.delete('/allOrders/:id', async (req, res) => {
-            const id = req.params.id;
-            const query = { _id: ObjectId(id) };
-            const result = await userOrders.deleteOne(query);
-            res.send(result);
-        })
     }
     finally { }
 }
